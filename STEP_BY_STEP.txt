@@ -1,0 +1,100 @@
+═══════════════════════════════════════════════════════════════
+  IDE3 - PUSH TO GITHUB - STEP BY STEP
+═══════════════════════════════════════════════════════════════
+
+OPTION A: ONE COMMAND (EASIEST)
+═══════════════════════════════════════════════════════════════
+
+Just run this PowerShell script:
+
+    cd /tmp/cc-agent/59521215/project
+    ./PUSH_TO_GITHUB.ps1
+
+
+OPTION B: MANUAL COMMANDS (STEP BY STEP)
+═══════════════════════════════════════════════════════════════
+
+Copy and paste each command into PowerShell ONE AT A TIME:
+
+# Step 1: Go to project folder
+cd /tmp/cc-agent/59521215/project
+
+# Step 2: Check if git is set up
+git status
+
+# Step 3: If you see "not a git repository", initialize it:
+git init
+git branch -m main
+git config user.email "kelushael@github.com"
+git config user.name "kelushael"
+
+# Step 4: Add all files
+git add -A
+
+# Step 5: Commit everything
+git commit -m "Initial commit: IDE3 - Terminal AI Coding Agent"
+
+# Step 6: Add GitHub as remote
+git remote add origin https://github.com/Kelushael/https-github.com-Kelushael-ide3.git
+
+# Step 7: Push to GitHub
+git push -u origin main
+
+
+OPTION C: CREATE GITHUB REPO FIRST (SAFEST)
+═══════════════════════════════════════════════════════════════
+
+1. Go to https://github.com/new
+
+2. Fill in:
+   - Repository name: ide3
+   - Description: Terminal AI coding agent with dynamic GUI
+   - Public
+   - DON'T check "Add a README"
+
+3. Click "Create repository"
+
+4. GitHub will show you commands. Ignore them and run these instead:
+
+   cd /tmp/cc-agent/59521215/project
+   git remote add origin https://github.com/Kelushael/https-github.com-Kelushael-ide3.git
+   git push -u origin main
+
+
+TROUBLESHOOTING
+═══════════════════════════════════════════════════════════════
+
+ERROR: "fatal: not a git repository"
+FIX: Run these first:
+    cd /tmp/cc-agent/59521215/project
+    git init
+    git branch -m main
+    git add -A
+    git commit -m "Initial commit"
+
+ERROR: "fatal: remote origin already exists"
+FIX: Run this first:
+    git remote remove origin
+
+Then add it again:
+    git remote add origin https://github.com/Kelushael/https-github.com-Kelushael-ide3.git
+
+ERROR: "Authentication failed"
+FIX: You need to authenticate with GitHub:
+    - Use GitHub Desktop, or
+    - Set up SSH keys, or
+    - Use a Personal Access Token
+
+
+AFTER SUCCESSFUL PUSH
+═══════════════════════════════════════════════════════════════
+
+Your repository will be live at:
+    https://github.com/Kelushael/https-github.com-Kelushael-ide3
+
+To verify it worked:
+    - Open the URL above in your browser
+    - You should see all your files
+    - README.md will be displayed
+
+═══════════════════════════════════════════════════════════════
