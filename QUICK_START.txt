@@ -1,0 +1,171 @@
+╔════════════════════════════════════════════════════════════════════╗
+║                    IDE3 - QUICK START GUIDE                        ║
+║         Autonomous Local AI - Zero API Costs - 8GB RAM OK          ║
+╚════════════════════════════════════════════════════════════════════╝
+
+🎯 WHAT IS THIS?
+
+A complete AI coding assistant that runs 100% FREE on your machine:
+- NO API keys needed
+- NO cloud services
+- NO safety filters (fully uncensored)
+- Works offline after setup
+- Fits in 8GB RAM
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+📦 BUILD THE DISTRIBUTABLE PACKAGE
+
+From this project directory, run:
+
+    ./build-package.sh
+
+This creates: dist-package/ide3-v1.0.0.tar.gz
+
+Then distribute to users!
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+🚀 INSTALL (For End Users)
+
+1. Extract the package:
+   tar -xzf ide3-v1.0.0.tar.gz
+   cd dist-package
+
+2. Run installer:
+   ./install.sh
+
+3. Start IDE3:
+   ide3 start
+
+   ⏱️ First run downloads model (~4GB, takes 5-10 min)
+
+4. Chat with AI:
+   ide3 chat
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+💬 USAGE COMMANDS
+
+ide3 start          Start AI agent (background)
+ide3 stop           Stop AI agent
+ide3 chat           Interactive AI chat
+ide3 exec <code>    Execute code snippet
+ide3 gui            Open web interface
+ide3 shell          Access container shell
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+🔥 EXAMPLE USAGE
+
+# Start chatting
+ide3 chat
+
+# In chat, you can ask ANYTHING:
+You > Build me a todo app with React and save it to ./todo-app
+
+You > Create a Python script that scrapes hacker news
+
+You > Debug this error: [paste huge error log]
+
+You > Refactor all .js files in ./src to use async/await
+
+# Execute quick code
+ide3 exec "console.log('test')"
+ide3 exec "print('hello')" --language python
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+🛠️ WHAT CAN IT DO?
+
+✓ Read/write any file
+✓ Execute bash/python/node commands
+✓ Git operations (commit, diff, status)
+✓ Docker operations (run containers, exec commands)
+✓ Search codebases
+✓ Handle massive context (100k+ tokens)
+✓ Build entire projects from descriptions
+✓ NO confirmations - just executes
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+🔓 UNCENSORED MODE
+
+The model (Dolphin-Coder-7B) has ZERO safety filters:
+- No refusals
+- No "I can't help with that"
+- No moral lectures
+- Just pure execution
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+💾 SYSTEM REQUIREMENTS
+
+Minimum:
+- 8GB RAM
+- 10GB disk space
+- Docker (auto-installed if missing)
+- Any modern CPU
+
+Recommended:
+- 16GB RAM (for larger projects)
+- 20GB disk space (multiple models)
+- SSD (faster loading)
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+📁 PROJECT FILES
+
+Key files you might want to customize:
+
+Dockerfile              - Container setup
+build-package.sh        - Creates distributable
+mcp-server/server.py    - All the tools (file, bash, git, docker)
+cli/chat-session.ts     - Chat interface
+cli/ollama-client.ts    - Ollama integration
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+🐛 TROUBLESHOOTING
+
+Q: Model won't download?
+A: Check internet, or manually: ide3 shell → ollama pull dolphin-mistral:7b-v2.6
+
+Q: Out of memory?
+A: Use smaller model: ollama pull dolphin-mistral:7b-v2.6-q4_0
+
+Q: Command not found?
+A: Run: sudo ln -s /usr/local/bin/ide3 /usr/bin/ide3
+
+Q: Container won't start?
+A: Check logs: docker logs ide3-agent
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+📖 MORE INFO
+
+COMPLETE_GUIDE.md    - Full technical documentation
+README.md            - Project overview
+Dockerfile           - See what's included
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+🎉 YOU'RE READY!
+
+To build distributable:
+    ./build-package.sh
+
+To test locally:
+    docker build -t ide3-ai .
+    docker run -d -p 11434:11434 --name ide3-agent ide3-ai:latest
+    docker exec -it ide3-agent node /app/dist-cli/index.js chat
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Built with: Ollama + Dolphin-Coder + FastMCP + Node.js + React + Supabase
+
+This is YOUR tool. Modify it. Break it. Make it yours.
+
+NO restrictions. NO limits. Just code.
+
+🔥
