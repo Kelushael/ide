@@ -1,8 +1,14 @@
 import { useState } from 'react';
-import { Terminal, Sparkles, Code2, Zap, FileCode, Github } from 'lucide-react';
+import { Terminal, Sparkles, Code2, Zap, FileCode, Github, Globe, Download } from 'lucide-react';
+import WebContainerIDE from './WebContainerIDE';
 
 function App() {
   const [activeTab, setActiveTab] = useState('overview');
+  const [mode, setMode] = useState<'landing' | 'web-ide'>('landing');
+
+  if (mode === 'web-ide') {
+    return <WebContainerIDE />;
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-slate-100">
@@ -14,8 +20,26 @@ function App() {
               IDE3
             </h1>
           </div>
-          <p className="text-2xl text-slate-300 mb-2">Terminal AI Coding Agent</p>
-          <p className="text-slate-400">with Dynamic GUI Spawning</p>
+          <p className="text-2xl text-slate-300 mb-2">Autonomous Local AI Coding Assistant</p>
+          <p className="text-slate-400">Zero API Costs • 8GB RAM • Uncensored</p>
+
+          {/* Mode Selector */}
+          <div className="mt-8 flex justify-center gap-4">
+            <button
+              onClick={() => setMode('web-ide')}
+              className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-700 hover:to-blue-700 text-white rounded-lg font-medium transition-all shadow-lg"
+            >
+              <Globe className="w-5 h-5" />
+              Try Web Edition (Instant)
+            </button>
+            <a
+              href="#download"
+              className="flex items-center gap-2 px-6 py-3 bg-slate-800 hover:bg-slate-700 text-white rounded-lg font-medium transition-all border border-slate-600"
+            >
+              <Download className="w-5 h-5" />
+              Download Desktop
+            </a>
+          </div>
         </header>
 
         <div className="max-w-6xl mx-auto">
