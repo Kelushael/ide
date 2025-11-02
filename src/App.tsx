@@ -1,13 +1,29 @@
 import { useState } from 'react';
-import { Terminal, Sparkles, Code2, Zap, FileCode, Github, Globe, Download } from 'lucide-react';
+import { Terminal, Sparkles, Code2, Zap, FileCode, Github, Globe, Download, Store, Plus } from 'lucide-react';
 import WebContainerIDE from './WebContainerIDE';
+import AgentMarketplace from './AgentMarketplace';
+import AgentCreator from './AgentCreator';
+import AgentRunner from './AgentRunner';
 
 function App() {
   const [activeTab, setActiveTab] = useState('overview');
-  const [mode, setMode] = useState<'landing' | 'web-ide'>('landing');
+  const [mode, setMode] = useState<'landing' | 'web-ide' | 'marketplace' | 'creator' | 'runner'>('landing');
+  const [selectedAgent, setSelectedAgent] = useState<string>('');
 
   if (mode === 'web-ide') {
     return <WebContainerIDE />;
+  }
+
+  if (mode === 'marketplace') {
+    return <AgentMarketplace />;
+  }
+
+  if (mode === 'creator') {
+    return <AgentCreator />;
+  }
+
+  if (mode === 'runner' && selectedAgent) {
+    return <AgentRunner agentSlug={selectedAgent} />;
   }
 
   return (
@@ -24,13 +40,27 @@ function App() {
           <p className="text-slate-400">Zero API Costs • 8GB RAM • Uncensored</p>
 
           {/* Mode Selector */}
-          <div className="mt-8 flex justify-center gap-4">
+          <div className="mt-8 flex flex-wrap justify-center gap-4">
+            <button
+              onClick={() => setMode('marketplace')}
+              className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white rounded-lg font-medium transition-all shadow-lg"
+            >
+              <Store className="w-5 h-5" />
+              Agent Marketplace
+            </button>
+            <button
+              onClick={() => setMode('creator')}
+              className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-green-600 to-teal-600 hover:from-green-700 hover:to-teal-700 text-white rounded-lg font-medium transition-all shadow-lg"
+            >
+              <Plus className="w-5 h-5" />
+              Create Agent
+            </button>
             <button
               onClick={() => setMode('web-ide')}
               className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-700 hover:to-blue-700 text-white rounded-lg font-medium transition-all shadow-lg"
             >
               <Globe className="w-5 h-5" />
-              Try Web Edition (Instant)
+              Web IDE
             </button>
             <a
               href="#download"

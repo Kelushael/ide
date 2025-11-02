@@ -11,9 +11,12 @@
   "scripts": {
     "dev": "vite",
     "dev:cli": "tsx watch cli/index.ts",
-    "build": "npm run build:gui && npm run build:cli",
+    "dev:server": "tsx watch server/hybrid-server.ts",
+    "build": "npm run build:gui && npm run build:cli && npm run build:server",
     "build:gui": "vite build",
     "build:cli": "tsc -p tsconfig.cli.json && chmod +x dist-cli/index.js",
+    "build:server": "tsc server/hybrid-server.ts --outDir dist-server --module commonjs --target es2020 --esModuleInterop --moduleResolution node",
+    "start:server": "node dist-server/hybrid-server.js",
     "lint": "eslint .",
     "preview": "vite preview",
     "typecheck": "tsc --noEmit -p tsconfig.app.json"
