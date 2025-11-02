@@ -66,9 +66,9 @@ program
     .command('chat')
     .description('Start interactive AI chat session')
     .action(async () => {
-    console.log(chalk.cyan.bold('\n🤖 IDE3 AI Chat\n'));
-    console.log(chalk.yellow('Chat feature coming soon!'));
-    console.log(chalk.gray('Configure your API key in ~/.ide3/config.json\n'));
+    const { ChatSession } = await import('./chat-session.js');
+    const session = new ChatSession();
+    await session.start();
 });
 program.parse(process.argv);
 if (!process.argv.slice(2).length) {
