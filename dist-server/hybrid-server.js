@@ -1,23 +1,18 @@
-"use strict";
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
-Object.defineProperty(exports, "__esModule", { value: true });
-const express_1 = __importDefault(require("express"));
-const http_1 = require("http");
-const socket_io_1 = require("socket.io");
-const cors_1 = __importDefault(require("cors"));
-const child_process_1 = require("child_process");
-const app = (0, express_1.default)();
-const httpServer = (0, http_1.createServer)(app);
-const io = new socket_io_1.Server(httpServer, {
+import express from 'express';
+import { createServer } from 'http';
+import { Server } from 'socket.io';
+import cors from 'cors';
+import { spawn } from 'child_process';
+const app = express();
+const httpServer = createServer(app);
+const io = new Server(httpServer, {
     cors: {
         origin: '*',
         methods: ['GET', 'POST'],
     },
 });
-app.use((0, cors_1.default)());
-app.use(express_1.default.json());
+app.use(cors());
+app.use(express.json());
 async function callOllama(prompt, systemPrompt) {
     const response = await fetch('http://localhost:11434/api/generate', {
         method: 'POST',
@@ -36,7 +31,7 @@ function executeCommand(command) {
         const parts = command.split(' ');
         const cmd = parts[0];
         const args = parts.slice(1);
-        const child = (0, child_process_1.spawn)(cmd, args, {
+        const child = spawn(cmd, args, {
             shell: true,
             cwd: process.cwd(),
         });
