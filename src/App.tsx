@@ -63,7 +63,8 @@ function App() {
               Web IDE
             </button>
             <a
-              href="#download"
+              href="https://github.com/yourusername/ide3/archive/refs/heads/main.zip"
+              download
               className="flex items-center gap-2 px-6 py-3 bg-slate-800 hover:bg-slate-700 text-white rounded-lg font-medium transition-all border border-slate-600"
             >
               <Download className="w-5 h-5" />
