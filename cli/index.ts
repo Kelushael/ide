@@ -65,18 +65,111 @@ program
   .description('Launch GUI dashboard in browser')
   .option('-p, --port <port>', 'Port for GUI server', '3000')
   .action(async (options: { port?: string }) => {
-    console.log(chalk.cyan.bold('\n🖥️  IDE3 GUI\n'));
-    console.log(chalk.yellow('GUI feature coming soon!'));
-    console.log(chalk.gray('This will launch a beautiful web dashboard.\n'));
+    const { spawn } = await import('child_process');
+    const open = (await import('open')).default;
+    const path = await import('path');
+    const { fileURLToPath } = await import('url');
+
+    const port = options.port || '3000';
+    const serverPort = '3001';
+
+    console.log(chalk.cyan.bold('\n🚀 IDE3 GUI Launcher\n'));
+    console.log(chalk.gray('Starting hybrid server...'));
+
+    // Get the project root directory
+    const __filename = fileURLToPath(import.meta.url);
+    const __dirname = path.dirname(__filename);
+    const projectRoot = path.resolve(__dirname, '..');
+
+    // Start the hybrid server in background
+    const serverPath = path.join(projectRoot, 'dist-server', 'hybrid-server.js');
+    const server = spawn('node', [serverPath], {
+      detached: true,
+      stdio: 'ignore',
+      env: { ...process.env, PORT: serverPort }
+    });
+
+    server.unref();
+
+    // Give server a moment to start
+    await new Promise(resolve => setTimeout(resolve, 1500));
+
+    console.log(chalk.green(`✓ Hybrid server started on port ${serverPort}`));
+    console.log(chalk.gray(`Opening browser to http://localhost:${port}...\n`));
+
+    // Open browser
+    try {
+      await open(`http://localhost:${port}`);
+      console.log(chalk.cyan.bold('🖥️  IDE3 GUI launched at ') + chalk.white(`http://localhost:${port}`));
+      console.log(chalk.gray('   Backend WebSocket running on port ') + chalk.white(serverPort));
+      console.log(chalk.gray('\n   Press Ctrl+C to stop the GUI server\n'));
+
+      // Keep process alive
+      process.on('SIGINT', () => {
+        console.log(chalk.yellow('\n\n👋 Shutting down IDE3 GUI...\n'));
+        process.exit(0);
+      });
+
+      // Keep alive
+      await new Promise(() => {});
+    } catch (error: any) {
+      console.log(chalk.yellow('⚠️  Could not auto-open browser'));
+      console.log(chalk.cyan('   Manually open: ') + chalk.white(`http://localhost:${port}`));
+      console.log(chalk.gray('   Backend running on port ') + chalk.white(serverPort) + '\n');
+    }
   });
 
 program
   .command('chat')
   .description('Start interactive AI chat session')
-  .action(async () => {
+  .option('--mcp', 'Enable MCP tools integration')
+  .action(async (options: { mcp?: boolean }) => {
     const { ChatSession } = await import('./chat-session.js');
-    const session = new ChatSession();
+    const session = new ChatSession(options.mcp);
     await session.start();
+  });
+
+program
+  .command('mcp')
+  .description('Start MCP server with unrestricted tools')
+  .action(async () => {
+    const { MCPClient } = await import('./mcp-client.js');
+
+    console.log(chalk.cyan.bold('\n🔧 IDE3 MCP Server\n'));
+    console.log(chalk.gray('Starting MCP server with all tools...\n'));
+
+    const client = new MCPClient();
+
+    try {
+      await client.start();
+      console.log(chalk.green('✓ MCP server started'));
+
+      const tools = await client.listTools();
+      console.log(chalk.cyan(`\n📦 Available tools: ${tools.length}\n`));
+
+      for (const tool of tools) {
+        console.log(chalk.gray(`  • ${tool.name.padEnd(20)} - ${tool.description}`));
+      }
+
+      console.log(chalk.cyan('\n🔥 Uncensored mode: ACTIVE'));
+      console.log(chalk.gray('   NO restrictions • NO confirmations • Pure execution'));
+      console.log(chalk.gray('\n   Press Ctrl+C to stop\n'));
+
+      // Keep alive
+      process.on('SIGINT', async () => {
+        console.log(chalk.yellow('\n\n👋 Shutting down MCP server...\n'));
+        await client.stop();
+        process.exit(0);
+      });
+
+      await new Promise(() => {});
+    } catch (error: any) {
+      console.log(chalk.red('✗ Failed to start MCP server'));
+      console.error(chalk.red('Error:'), error.message);
+      console.log(chalk.yellow('\nMake sure Python 3 is installed:'));
+      console.log(chalk.gray('  python3 --version\n'));
+      process.exit(1);
+    }
   });
 
 program.parse(process.argv);
@@ -88,5 +181,7 @@ if (!process.argv.slice(2).length) {
   console.log(chalk.gray('  $ ide3 exec "console.log(\'Hello World\')"'));
   console.log(chalk.gray('  $ ide3 exec "print(\'Hello\')" --language python'));
   console.log(chalk.gray('  $ ide3 gui'));
-  console.log(chalk.gray('  $ ide3 chat\n'));
+  console.log(chalk.gray('  $ ide3 chat'));
+  console.log(chalk.gray('  $ ide3 chat --mcp'));
+  console.log(chalk.gray('  $ ide3 mcp\n'));
 }

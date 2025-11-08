@@ -7,7 +7,9 @@ export declare class ChatSession {
     private messages;
     private supabase;
     private sessionId;
-    constructor();
+    private mcpEnabled;
+    private mcpClient;
+    constructor(mcpEnabled?: boolean);
     start(): Promise<void>;
     private chatLoop;
     private handleCommand;

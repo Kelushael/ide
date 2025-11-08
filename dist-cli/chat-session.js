@@ -39,10 +39,13 @@ export class ChatSession {
     messages;
     supabase;
     sessionId;
-    constructor() {
+    mcpEnabled;
+    mcpClient;
+    constructor(mcpEnabled = false) {
         this.ollama = new OllamaClient();
         this.messages = [{ role: 'system', content: SYSTEM_PROMPT }];
         this.sessionId = Date.now().toString();
+        this.mcpEnabled = mcpEnabled;
         // Initialize Supabase
         const supabaseUrl = process.env.VITE_SUPABASE_URL;
         const supabaseKey = process.env.VITE_SUPABASE_ANON_KEY;
@@ -55,6 +58,21 @@ export class ChatSession {
         console.log(chalk.cyan.bold('║                 IDE3 AI Coding Agent                       ║'));
         console.log(chalk.cyan.bold('║            Autonomous Local AI - Zero Limits               ║'));
         console.log(chalk.cyan.bold('╚════════════════════════════════════════════════════════════╝\n'));
+        // Start MCP if enabled
+        if (this.mcpEnabled) {
+            console.log(chalk.gray('Starting MCP server...'));
+            const { MCPClient } = await import('./mcp-client.js');
+            this.mcpClient = new MCPClient();
+            try {
+                await this.mcpClient.start();
+                console.log(chalk.green('✓ MCP tools available (15 tools)\n'));
+            }
+            catch (error) {
+                console.log(chalk.yellow('⚠️  MCP server failed to start'));
+                console.log(chalk.gray('   Continuing without MCP tools\n'));
+                this.mcpEnabled = false;
+            }
+        }
         // Check Ollama availability
         const available = await this.ollama.isAvailable();
         if (!available) {
