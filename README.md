@@ -6,10 +6,12 @@ A powerful terminal-based AI coding assistant that can dynamically spawn beautif
 
 ## Features
 
+- **Write Mode by Default**: Just like Claude Code - automatically executes code upon detecting intent
 - **Terminal-First Workflow**: Interactive CLI with AI-powered coding assistance
 - **Dynamic GUI Spawning**: Launch vibrant web-based interfaces for visual tasks
 - **Multi-LLM Support**: Works with OpenAI, Anthropic, Ollama, and local models
-- **Code Execution**: Run code in multiple languages directly from the terminal
+- **Automatic Code Execution**: Detects and runs JavaScript, Python, and Bash code blocks instantly
+- **Global CLI Access**: Install once, use anywhere with `ide3` command
 - **File Management**: AI-assisted file editing with visual diff viewer
 - **Project Creation**: Scaffold entire projects from natural language descriptions
 - **Conversation History**: All chats saved to Supabase for cross-device access
@@ -53,7 +55,22 @@ ide3 --help
 
 ## Usage
 
-### Execute Code
+### Default: AI Chat with Write Mode
+
+Just run `ide3` and start chatting! The AI will automatically execute code when it detects intent.
+
+```bash
+ide3
+# Launches AI chat in write mode - executes immediately upon intent
+```
+
+**Write Mode Features:**
+- Automatically detects code blocks in AI responses
+- Executes JavaScript, Python, and Bash code immediately
+- No confirmations needed - just like Claude Code
+- Disable with: `ide3 chat --no-write`
+
+### Execute Code Directly
 
 ```bash
 # JavaScript
@@ -73,22 +90,25 @@ ide3 gui
 # Opens beautiful web interface at http://localhost:3000
 ```
 
-### AI Chat (Coming Soon)
+### AI Chat (Explicit)
 
 ```bash
-ide3 chat
-# Interactive AI-powered coding assistant
+ide3 chat                # Chat with write mode enabled (default)
+ide3 chat --no-write     # Chat without automatic execution
+ide3 chat --mcp          # Chat with MCP tools integration
 ```
 
 ## Commands
 
 | Command | Description |
 |---------|-------------|
+| `ide3` | Start AI chat with write mode (default) |
+| `ide3 chat` | Start AI chat session with write mode |
+| `ide3 chat --no-write` | Chat without automatic execution |
+| `ide3 chat --mcp` | Chat with MCP tools integration |
 | `ide3 exec <code>` | Execute code in JS, Python, or Bash |
 | `ide3 gui` | Launch web dashboard |
-| `ide3 chat` | Start AI chat session |
-| `ide3 edit <file>` | AI-assisted file editing |
-| `ide3 create <desc>` | Generate projects from descriptions |
+| `ide3 mcp` | Start MCP server with unrestricted tools |
 
 ## Project Structure
 
@@ -153,20 +173,45 @@ Create `~/.ide3/config.json`:
 
 ## Examples
 
-### Calculate Sum
+### Write Mode in Action
+
 ```bash
+# Just run ide3 and chat naturally
+ide3
+
+You: Create a function that calculates fibonacci numbers
+
+AI: Here's a fibonacci function:
+
+```javascript
+function fibonacci(n) {
+  if (n <= 1) return n;
+  return fibonacci(n - 1) + fibonacci(n - 2);
+}
+console.log(fibonacci(10));
+\```
+
+⚡ Detected executable code - running immediately...
+
+Executing javascript:
+────────────────────────────────────────────────────────────
+✓ Output:
+55
+────────────────────────────────────────────────────────────
+```
+
+### Direct Code Execution
+
+```bash
+# Calculate Sum
 ide3 exec "const sum = [1,2,3,4,5].reduce((a,b) => a+b, 0); console.log(sum)"
 # Output: 15
-```
 
-### Python Math
-```bash
+# Python Math
 ide3 exec "import math; print(f'Pi = {math.pi:.2f}')" --language python
 # Output: Pi = 3.14
-```
 
-### System Info
-```bash
+# System Info
 ide3 exec "uname -a" --language bash
 ```
 
@@ -176,7 +221,9 @@ ide3 exec "uname -a" --language bash
 - [x] Code execution engine
 - [x] Beautiful web GUI
 - [x] Supabase integration
-- [ ] Full AI chat implementation
+- [x] Full AI chat implementation
+- [x] Write mode with automatic execution
+- [x] Global CLI installation
 - [ ] Monaco code editor
 - [ ] Git integration
 - [ ] Multi-file refactoring

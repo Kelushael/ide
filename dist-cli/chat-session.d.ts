@@ -9,9 +9,11 @@ export declare class ChatSession {
     private sessionId;
     private mcpEnabled;
     private mcpClient;
-    constructor(mcpEnabled?: boolean);
+    private writeMode;
+    constructor(mcpEnabled?: boolean, writeMode?: boolean);
     start(): Promise<void>;
     private chatLoop;
     private handleCommand;
+    private detectAndExecute;
     private saveMessage;
 }

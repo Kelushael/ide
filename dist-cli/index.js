@@ -4,7 +4,7 @@ import chalk from 'chalk';
 const program = new Command();
 program
     .name('ide3')
-    .description('Terminal AI coding agent with dynamic GUI spawning')
+    .description('Terminal AI coding agent with write mode - executes immediately upon intent')
     .version('1.0.0');
 program
     .command('exec <code>')
@@ -104,11 +104,13 @@ program
 });
 program
     .command('chat')
-    .description('Start interactive AI chat session')
+    .description('Start interactive AI chat session (default mode with write enabled)')
     .option('--mcp', 'Enable MCP tools integration')
+    .option('--no-write', 'Disable automatic code execution')
     .action(async (options) => {
     const { ChatSession } = await import('./chat-session.js');
-    const session = new ChatSession(options.mcp);
+    const writeMode = options.write !== false;
+    const session = new ChatSession(options.mcp, writeMode);
     await session.start();
 });
 program
@@ -146,15 +148,18 @@ program
         process.exit(1);
     }
 });
-program.parse(process.argv);
-if (!process.argv.slice(2).length) {
-    console.log(chalk.cyan.bold('\n🚀 IDE3 - AI Coding Agent\n'));
-    program.outputHelp();
-    console.log(chalk.gray('\nExamples:'));
-    console.log(chalk.gray('  $ ide3 exec "console.log(\'Hello World\')"'));
-    console.log(chalk.gray('  $ ide3 exec "print(\'Hello\')" --language python'));
-    console.log(chalk.gray('  $ ide3 gui'));
-    console.log(chalk.gray('  $ ide3 chat'));
-    console.log(chalk.gray('  $ ide3 chat --mcp'));
-    console.log(chalk.gray('  $ ide3 mcp\n'));
+// Parse args
+const args = process.argv.slice(2);
+// If no command provided or just flags, start chat in write mode
+if (args.length === 0 || (args.length > 0 && args[0].startsWith('-'))) {
+    // Default to chat with write mode enabled
+    (async () => {
+        const { ChatSession } = await import('./chat-session.js');
+        const mcpEnabled = args.includes('--mcp');
+        const session = new ChatSession(mcpEnabled, true); // true = write mode
+        await session.start();
+    })();
+}
+else {
+    program.parse(process.argv);
 }

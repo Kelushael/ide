@@ -45,12 +45,14 @@ export class ChatSession {
   private sessionId: string;
   private mcpEnabled: boolean;
   private mcpClient: any;
+  private writeMode: boolean;
 
-  constructor(mcpEnabled: boolean = false) {
+  constructor(mcpEnabled: boolean = false, writeMode: boolean = false) {
     this.ollama = new OllamaClient();
     this.messages = [{ role: 'system', content: SYSTEM_PROMPT }];
     this.sessionId = Date.now().toString();
     this.mcpEnabled = mcpEnabled;
+    this.writeMode = writeMode;
 
     // Initialize Supabase
     const supabaseUrl = process.env.VITE_SUPABASE_URL;
@@ -66,6 +68,11 @@ export class ChatSession {
     console.log(chalk.cyan.bold('║                 IDE3 AI Coding Agent                       ║'));
     console.log(chalk.cyan.bold('║            Autonomous Local AI - Zero Limits               ║'));
     console.log(chalk.cyan.bold('╚════════════════════════════════════════════════════════════╝\n'));
+
+    if (this.writeMode) {
+      console.log(chalk.green('✓ Write Mode: ACTIVE'));
+      console.log(chalk.gray('  AI will automatically execute tasks upon detecting intent\n'));
+    }
 
     // Start MCP if enabled
     if (this.mcpEnabled) {
@@ -104,7 +111,11 @@ export class ChatSession {
     }
 
     console.log(chalk.cyan('🔥 Uncensored mode: ACTIVE'));
-    console.log(chalk.cyan('💬 Type your request or paste massive context'));
+    if (this.writeMode) {
+      console.log(chalk.cyan('💬 Describe what you want - AI will execute immediately'));
+    } else {
+      console.log(chalk.cyan('💬 Type your request or paste massive context'));
+    }
     console.log(chalk.gray('   Press Ctrl+C to exit, Ctrl+D for multi-line input\n'));
 
     await this.chatLoop();
@@ -159,6 +170,11 @@ export class ChatSession {
 
         // Save to Supabase
         await this.saveMessage(assistantMessage);
+
+        // If write mode is enabled, detect and execute intent
+        if (this.writeMode) {
+          await this.detectAndExecute(fullResponse);
+        }
       } catch (error: any) {
         console.log(chalk.red(`\n✗ Error: ${error.message}\n`));
       }
@@ -229,6 +245,70 @@ export class ChatSession {
         console.log(chalk.red(`✗ Unknown command: ${command}\n`));
         console.log(chalk.gray('  Type /help for available commands\n'));
     }
+  }
+
+  private async detectAndExecute(response: string) {
+    // Detect code blocks and execution intent
+    const codeBlockRegex = /```(\w+)?\n([\s\S]*?)```/g;
+    const matches = [...response.matchAll(codeBlockRegex)];
+
+    if (matches.length === 0) return;
+
+    console.log(chalk.cyan('\n⚡ Detected executable code - running immediately...\n'));
+
+    for (const match of matches) {
+      const language = match[1] || 'bash';
+      const code = match[2].trim();
+
+      if (!code) continue;
+
+      console.log(chalk.gray(`Executing ${language}:`));
+      console.log(chalk.gray('─'.repeat(60)));
+
+      try {
+        const { exec } = await import('child_process');
+        const { promisify } = await import('util');
+        const execAsync = promisify(exec);
+
+        let command: string;
+        switch (language.toLowerCase()) {
+          case 'javascript':
+          case 'js':
+          case 'node':
+            command = `node -e ${JSON.stringify(code)}`;
+            break;
+          case 'python':
+          case 'py':
+            command = `python3 -c ${JSON.stringify(code)}`;
+            break;
+          case 'bash':
+          case 'sh':
+          case 'shell':
+            command = code;
+            break;
+          default:
+            console.log(chalk.yellow(`  Skipping unsupported language: ${language}\n`));
+            continue;
+        }
+
+        const { stdout, stderr } = await execAsync(command, { timeout: 30000 });
+
+        if (stdout) {
+          console.log(chalk.green('✓ Output:'));
+          console.log(stdout);
+        }
+        if (stderr) {
+          console.log(chalk.yellow('⚠️  Stderr:'));
+          console.log(stderr);
+        }
+        console.log(chalk.gray('─'.repeat(60)));
+      } catch (error: any) {
+        console.log(chalk.red('✗ Execution failed:'));
+        console.log(chalk.red(error.message));
+        console.log(chalk.gray('─'.repeat(60)));
+      }
+    }
+    console.log();
   }
 
   private async saveMessage(message: OllamaMessage) {
