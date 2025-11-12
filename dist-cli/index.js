@@ -150,13 +150,13 @@ program
 });
 // Parse args
 const args = process.argv.slice(2);
-// If no command provided or just flags, start chat in write mode
+// If no command provided or just flags, start sovereign chat in write mode
 if (args.length === 0 || (args.length > 0 && args[0].startsWith('-'))) {
-    // Default to chat with write mode enabled
+    // Default to sovereign chat with write mode enabled
     (async () => {
-        const { ChatSession } = await import('./chat-session.js');
-        const mcpEnabled = args.includes('--mcp');
-        const session = new ChatSession(mcpEnabled, true); // true = write mode
+        const { SovereignChatSession } = await import('./sovereign-chat.js');
+        const writeMode = !args.includes('--no-write');
+        const session = new SovereignChatSession(writeMode);
         await session.start();
     })();
 }
