@@ -11,6 +11,7 @@ export declare class ChatSession {
     private mcpClient;
     private writeMode;
     constructor(mcpEnabled?: boolean, writeMode?: boolean);
+    private displayWelcomeScreen;
     start(): Promise<void>;
     private chatLoop;
     private handleCommand;

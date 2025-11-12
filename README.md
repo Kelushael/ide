@@ -19,11 +19,19 @@ A powerful terminal-based AI coding assistant that can dynamically spawn beautif
 
 ## Quick Start
 
-### Installation
+### One-Command Install
+
+```bash
+git clone https://github.com/yourusername/ide3.git && cd ide3 && npm install && npm run build && npm link
+```
+
+Then just run `ide3` from anywhere!
+
+### Manual Installation
 
 ```bash
 # Clone the repository
-git clone <your-repo-url>
+git clone https://github.com/yourusername/ide3.git
 cd ide3
 
 # Install dependencies
@@ -32,25 +40,29 @@ npm install
 # Build the project
 npm run build
 
-# Test it
-node dist-cli/index.js exec "console.log('Hello IDE3!')"
-```
-
-### Install Globally
-
-```bash
-# Option 1: Development (uses symlink)
+# Install globally
 npm link
 
-# Option 2: Production (creates package)
-npm pack
-npm install -g ./ide3-1.0.0.tgz
+# Now you can use it anywhere
+ide3
+```
 
-# Add to PATH (if needed)
-export PATH="$(npm config get prefix)/bin:$PATH"
+### What You'll See
 
-# Test installation
-ide3 --help
+```
+╭─── IDE3 v1.0.0 ───────────────────────────────────╮
+│  Welcome back User!         │ Tips for started    │
+│                            │ Run /help           │
+│    ▗▄▄▄▖▗▄▄▄ ▗▄▄▄▄▖▗▖  ▗▖   │                     │
+│      █  █   █  █   █ █    │ Type your request   │
+│      █  █   █  █▄▄▄▀ ▀▀▀▖  │                     │
+│    ▗▄█▄▖▀▄▄▄▀▗▄█▄▄▖▀▄▄▄▀    │                     │
+│  Model: Ollama / Local AI  │ Recent activity     │
+│  Path:  /your/project      │                     │
+╰────────────────────────────────────────────────────╯
+> Try "create a simple todo app"
+
+>
 ```
 
 ## Usage

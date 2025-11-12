@@ -79,11 +79,49 @@ export class ChatSession {
     }
   }
 
+  private displayWelcomeScreen() {
+    const username = process.env.USER || process.env.USERNAME || 'User';
+    const cwd = process.cwd();
+    const projectName = cwd.split('/').pop() || 'project';
+
+    const logo = `
+    ▗▄▄▄▖▗▄▄▄ ▗▄▄▄▄▖▗▖  ▗▖
+      █  █   █  █   █ █
+      █  █   █  █▄▄▄▀ ▀▀▀▖
+    ▗▄█▄▖▀▄▄▄▀▗▄█▄▄▖▀▄▄▄▀
+`;
+
+    const border = '─'.repeat(120);
+
+    console.log('\n' + chalk.cyan('╭─── IDE3 v1.0.0 ') + chalk.cyan(border.slice(0, 103)) + chalk.cyan('╮'));
+
+    // Left panel - Welcome
+    console.log(chalk.cyan('│') + chalk.white('  Welcome back ') + chalk.cyan(username) + '!'.padEnd(55) + chalk.cyan('│') + ' Tips for getting started'.padEnd(63) + chalk.cyan('│'));
+    console.log(chalk.cyan('│') + ' '.repeat(60) + chalk.cyan('│') + chalk.gray(' Run /help to see available commands').padEnd(64) + chalk.cyan('│'));
+
+    // Logo section
+    logo.split('\n').forEach((line, i) => {
+      const tipLine = i === 1 ? chalk.gray(' Note: Launched in ') + chalk.white(projectName) :
+                      i === 2 ? chalk.gray(' Type your request and press Enter to begin') : '';
+      console.log(chalk.cyan('│') + chalk.cyan(line).padEnd(60) + chalk.cyan('│') + tipLine.padEnd(64) + chalk.cyan('│'));
+    });
+
+    console.log(chalk.cyan('│') + ' '.repeat(60) + chalk.cyan('│') + chalk.gray(' ').padEnd(64) + chalk.cyan('│'));
+    console.log(chalk.cyan('│') + chalk.gray('  Model: ') + chalk.white('Ollama / Local AI').padEnd(60) + chalk.cyan('│') + chalk.cyan('─'.repeat(64)) + chalk.cyan('│'));
+    console.log(chalk.cyan('│') + chalk.gray('  Path:  ') + chalk.white(cwd.length > 47 ? '...' + cwd.slice(-44) : cwd).padEnd(60) + chalk.cyan('│') + chalk.white(' Recent activity').padEnd(64) + chalk.cyan('│'));
+    console.log(chalk.cyan('│') + ' '.repeat(60) + chalk.cyan('│') + chalk.gray(' No recent activity').padEnd(64) + chalk.cyan('│'));
+    console.log(chalk.cyan('│') + ' '.repeat(60) + chalk.cyan('│') + ' '.repeat(64) + chalk.cyan('│'));
+
+    console.log(chalk.cyan('╰') + chalk.cyan(border) + chalk.cyan('╯'));
+    console.log(border);
+    console.log(chalk.gray('> ') + chalk.gray('Try "create a simple todo app with HTML and JavaScript"'));
+    console.log(border);
+    console.log(chalk.gray('  ? for shortcuts') + ' '.repeat(88) + chalk.gray('Write mode: ') + chalk.green('ON'));
+    console.log();
+  }
+
   async start() {
-    console.log(chalk.cyan.bold('\n╔════════════════════════════════════════════════════════════╗'));
-    console.log(chalk.cyan.bold('║                 IDE3 AI Coding Agent                       ║'));
-    console.log(chalk.cyan.bold('║            Autonomous Local AI - Zero Limits               ║'));
-    console.log(chalk.cyan.bold('╚════════════════════════════════════════════════════════════╝\n'));
+    this.displayWelcomeScreen();
 
     if (this.writeMode) {
       console.log(chalk.green('✓ Write Mode: ACTIVE'));
@@ -169,15 +207,25 @@ export class ChatSession {
       // Save to Supabase
       await this.saveMessage(userMessage);
 
-      // Get AI response
-      console.log(chalk.yellow('\nAI > '));
+      // Get AI response with thinking indicator
+      const thinkingFrames = ['⠋', '⠙', '⠹', '⠸', '⠼', '⠴', '⠦', '⠧', '⠇', '⠏'];
+      let thinkingIndex = 0;
+      const thinkingInterval = setInterval(() => {
+        process.stdout.write(`\r${chalk.blue(thinkingFrames[thinkingIndex])} ${chalk.gray('Thinking…')}`);
+        thinkingIndex = (thinkingIndex + 1) % thinkingFrames.length;
+      }, 80);
+
       let fullResponse = '';
 
       try {
         for await (const chunk of this.ollama.chatStream(this.messages)) {
+          clearInterval(thinkingInterval);
+          process.stdout.write('\r' + ' '.repeat(50) + '\r'); // Clear thinking indicator
           process.stdout.write(chalk.white(chunk));
           fullResponse += chunk;
         }
+        clearInterval(thinkingInterval);
+        process.stdout.write('\r' + ' '.repeat(50) + '\r');
         console.log('\n');
 
         // Add assistant message
@@ -310,11 +358,19 @@ export class ChatSession {
 
     if (fileWrites.length > 0) {
       hasActions = true;
-      console.log(chalk.cyan('\n📝 Creating/updating files...\n'));
+      console.log(chalk.cyan('\n▸ Creating files…\n'));
 
       for (const match of fileWrites) {
         const filePath = match[1].trim();
         const content = match[3].trim();
+
+        // Show progress indicator
+        const frames = ['⠋', '⠙', '⠹', '⠸', '⠼', '⠴', '⠦', '⠧', '⠇', '⠏'];
+        let frameIndex = 0;
+        const progressInterval = setInterval(() => {
+          process.stdout.write(`\r${chalk.blue(frames[frameIndex])} ${chalk.gray(`Creating ${filePath}…`)}`);
+          frameIndex = (frameIndex + 1) % frames.length;
+        }, 80);
 
         try {
           const fs = await import('fs/promises');
@@ -326,8 +382,13 @@ export class ChatSession {
 
           // Write file
           await fs.writeFile(filePath, content, 'utf-8');
-          console.log(chalk.green(`✓ Created: ${filePath}`));
+
+          clearInterval(progressInterval);
+          process.stdout.write('\r' + ' '.repeat(100) + '\r');
+          console.log(chalk.green(`✓ Created ${filePath}`));
         } catch (error: any) {
+          clearInterval(progressInterval);
+          process.stdout.write('\r' + ' '.repeat(100) + '\r');
           console.log(chalk.red(`✗ Failed to write ${filePath}: ${error.message}`));
         }
       }
@@ -365,7 +426,7 @@ export class ChatSession {
 
     if (matches.length > 0) {
       hasActions = true;
-      console.log(chalk.cyan('\n⚡ Executing commands...\n'));
+      console.log(chalk.cyan('\n▸ Executing commands…\n'));
 
       for (const match of matches) {
         const language = match[1] || 'bash';
@@ -373,8 +434,13 @@ export class ChatSession {
 
         if (!code) continue;
 
-        console.log(chalk.gray(`Executing ${language}:`));
-        console.log(chalk.gray('─'.repeat(60)));
+        // Show cascading indicator
+        const frames = ['⠋', '⠙', '⠹', '⠸', '⠼', '⠴', '⠦', '⠧', '⠇', '⠏'];
+        let frameIndex = 0;
+        const execInterval = setInterval(() => {
+          process.stdout.write(`\r${chalk.blue(frames[frameIndex])} ${chalk.gray(`Running ${language}…`)}`);
+          frameIndex = (frameIndex + 1) % frames.length;
+        }, 80);
 
         try {
           const { exec } = await import('child_process');
@@ -398,7 +464,9 @@ export class ChatSession {
               command = code;
               break;
             default:
-              console.log(chalk.yellow(`  Skipping: ${language}\n`));
+              clearInterval(execInterval);
+              process.stdout.write('\r' + ' '.repeat(100) + '\r');
+              console.log(chalk.yellow(`⊘ Skipped: ${language}\n`));
               continue;
           }
 
@@ -407,19 +475,27 @@ export class ChatSession {
             cwd: process.cwd()
           });
 
+          clearInterval(execInterval);
+          process.stdout.write('\r' + ' '.repeat(100) + '\r');
+
           if (stdout) {
-            console.log(chalk.green('✓ Output:'));
-            console.log(stdout);
+            console.log(chalk.green(`✓ Executed ${language}`));
+            console.log(chalk.gray('─'.repeat(80)));
+            console.log(stdout.trim());
+            console.log(chalk.gray('─'.repeat(80)));
+          } else {
+            console.log(chalk.green(`✓ Executed ${language} (no output)`));
           }
+
           if (stderr) {
             console.log(chalk.yellow('⚠️  Stderr:'));
             console.log(stderr);
           }
-          console.log(chalk.gray('─'.repeat(60)));
         } catch (error: any) {
-          console.log(chalk.red('✗ Execution failed:'));
+          clearInterval(execInterval);
+          process.stdout.write('\r' + ' '.repeat(100) + '\r');
+          console.log(chalk.red(`✗ Failed to execute ${language}`));
           console.log(chalk.red(error.stderr || error.message));
-          console.log(chalk.gray('─'.repeat(60)));
         }
       }
       console.log();
