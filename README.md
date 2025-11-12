@@ -37,7 +37,17 @@ node dist-cli/index.js exec "console.log('Hello IDE3!')"
 ### Install Globally
 
 ```bash
+# Option 1: Development (uses symlink)
 npm link
+
+# Option 2: Production (creates package)
+npm pack
+npm install -g ./ide3-1.0.0.tgz
+
+# Add to PATH (if needed)
+export PATH="$(npm config get prefix)/bin:$PATH"
+
+# Test installation
 ide3 --help
 ```
 
