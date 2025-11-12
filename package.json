@@ -3,14 +3,18 @@
   "private": false,
   "version": "1.0.0",
   "type": "module",
-  "description": "Terminal AI coding agent - chat to build complete projects with automatic file creation and code execution",
-  "keywords": ["ai", "coding", "agent", "cli", "ollama", "terminal", "ide", "automation", "chat", "build", "write-mode"],
-  "author": "",
+  "description": "Sovereign AI Development Environment - 100% local Ollama/Vicuna by default, optional Claude. Zero API calls, complete privacy.",
+  "keywords": ["ai", "coding", "agent", "cli", "ollama", "vicuna", "sovereign", "local", "privacy", "claude", "terminal", "ide", "automation", "chat", "build", "write-mode"],
+  "author": "IDE3 Contributors",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/yourusername/ide3"
+    "url": "https://github.com/yourusername/ide3.git"
   },
+  "bugs": {
+    "url": "https://github.com/yourusername/ide3/issues"
+  },
+  "homepage": "https://github.com/yourusername/ide3#readme",
   "bin": {
     "ide3": "./dist-cli/index.js"
   },
