@@ -3,8 +3,8 @@
   "private": false,
   "version": "1.0.0",
   "type": "module",
-  "description": "Terminal AI coding agent with dynamic GUI spawning",
-  "keywords": ["ai", "coding", "agent", "cli", "ollama", "terminal", "ide", "automation"],
+  "description": "Terminal AI coding agent - chat to build complete projects with automatic file creation and code execution",
+  "keywords": ["ai", "coding", "agent", "cli", "ollama", "terminal", "ide", "automation", "chat", "build", "write-mode"],
   "author": "",
   "license": "MIT",
   "repository": {

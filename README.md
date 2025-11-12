@@ -65,10 +65,30 @@ ide3
 ```
 
 **Write Mode Features:**
-- Automatically detects code blocks in AI responses
-- Executes JavaScript, Python, and Bash code immediately
-- No confirmations needed - just like Claude Code
+- **File Operations**: Create, read, and modify files automatically
+- **Code Execution**: Runs JavaScript, Python, and Bash code immediately
+- **Project Building**: Scaffold entire projects from descriptions
+- **Dependency Installation**: Automatically installs packages when needed
+- **No Confirmations**: Everything executes immediately
+- **Full File System Access**: Create directories, write files, run builds
 - Disable with: `ide3 chat --no-write`
+
+**Build Anything via Chat:**
+```bash
+$ ide3
+
+You: Create a todo list app with HTML, CSS, and JavaScript
+
+AI: [Creates index.html, style.css, app.js automatically]
+
+📝 Creating/updating files...
+✓ Created: index.html
+✓ Created: style.css
+✓ Created: app.js
+✓ All actions completed
+```
+
+See [CHAT_EXAMPLES.md](./CHAT_EXAMPLES.md) for more examples.
 
 ### Execute Code Directly
 

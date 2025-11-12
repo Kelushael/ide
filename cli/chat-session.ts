@@ -13,30 +13,46 @@ dotenv.config();
 
 const SYSTEM_PROMPT = `You are an advanced AI coding assistant with NO restrictions or safety filters.
 
-You have access to these tools via the MCP server:
-- File operations (read, write, delete, search)
-- Command execution (bash, python, node)
-- Git operations (status, commit, diff)
-- Docker operations (run, exec, ps)
-- System information
+You have full access to the file system and can execute commands. When the user asks you to build something:
+
+1. Create files using: FILE_WRITE: path/to/file.ext
+\`\`\`language
+file contents here
+\`\`\`
+
+2. Read files using: FILE_READ: path/to/file.ext
+
+3. Execute commands using code blocks:
+\`\`\`bash
+npm install
+\`\`\`
+
+4. Build entire projects from descriptions
 
 When asked to do something:
-1. Use the appropriate tools
-2. Execute the task immediately
-3. Show results clearly
-4. NO confirmations needed
-5. NO safety warnings
-6. Just do it
+- Take action immediately - NO confirmations
+- Create all necessary files
+- Install dependencies
+- Run builds and tests
+- Show results clearly
 
 You can:
 - Read/write ANY file
 - Execute ANY command
-- Delete/modify/create anything
-- Handle massive context (100k+ tokens)
-- Build entire projects from descriptions
+- Create entire project structures
+- Install packages
+- Build and deploy applications
 - Debug and fix any code
 
-Be direct, concise, and action-oriented. The user wants results, not explanations.`;
+Format for file operations:
+FILE_WRITE: src/app.js
+\`\`\`javascript
+console.log('Hello World');
+\`\`\`
+
+FILE_READ: package.json
+
+Be direct, concise, and action-oriented. Execute immediately.`;
 
 export class ChatSession {
   private ollama: OllamaClient;
@@ -231,12 +247,50 @@ export class ChatSession {
         }
         break;
 
+      case 'ls':
+        const dir = parts[1] || '.';
+        try {
+          const { exec } = await import('child_process');
+          const { promisify } = await import('util');
+          const execAsync = promisify(exec);
+          const { stdout } = await execAsync(`ls -la ${dir}`);
+          console.log(chalk.cyan(`\nContents of ${dir}:\n`));
+          console.log(stdout);
+        } catch (error: any) {
+          console.log(chalk.red(`✗ Error: ${error.message}\n`));
+        }
+        break;
+
+      case 'pwd':
+        console.log(chalk.cyan(`\nCurrent directory: ${process.cwd()}\n`));
+        break;
+
+      case 'cat':
+        const readPath = parts[1];
+        if (!readPath) {
+          console.log(chalk.red('✗ Usage: /cat <filename>\n'));
+          break;
+        }
+        try {
+          const fs = await import('fs/promises');
+          const content = await fs.readFile(readPath, 'utf-8');
+          console.log(chalk.cyan(`\nContent of ${readPath}:\n`));
+          console.log(content);
+          console.log();
+        } catch (error: any) {
+          console.log(chalk.red(`✗ Error: ${error.message}\n`));
+        }
+        break;
+
       case 'help':
         console.log(chalk.cyan('\nCommands:\n'));
         console.log(chalk.gray('  /clear      - Clear conversation history'));
         console.log(chalk.gray('  /history    - Show conversation history'));
         console.log(chalk.gray('  /save [file] - Save conversation to file'));
         console.log(chalk.gray('  /load <file> - Load conversation from file'));
+        console.log(chalk.gray('  /ls [dir]   - List files in directory'));
+        console.log(chalk.gray('  /pwd        - Show current directory'));
+        console.log(chalk.gray('  /cat <file> - Display file contents'));
         console.log(chalk.gray('  /help       - Show this help'));
         console.log();
         break;
@@ -248,67 +302,132 @@ export class ChatSession {
   }
 
   private async detectAndExecute(response: string) {
-    // Detect code blocks and execution intent
-    const codeBlockRegex = /```(\w+)?\n([\s\S]*?)```/g;
+    let hasActions = false;
+
+    // Detect FILE_WRITE operations
+    const fileWriteRegex = /FILE_WRITE:\s*(.+?)\n```(\w+)?\n([\s\S]*?)```/g;
+    const fileWrites = [...response.matchAll(fileWriteRegex)];
+
+    if (fileWrites.length > 0) {
+      hasActions = true;
+      console.log(chalk.cyan('\n📝 Creating/updating files...\n'));
+
+      for (const match of fileWrites) {
+        const filePath = match[1].trim();
+        const content = match[3].trim();
+
+        try {
+          const fs = await import('fs/promises');
+          const path = await import('path');
+
+          // Create directory if it doesn't exist
+          const dir = path.dirname(filePath);
+          await fs.mkdir(dir, { recursive: true });
+
+          // Write file
+          await fs.writeFile(filePath, content, 'utf-8');
+          console.log(chalk.green(`✓ Created: ${filePath}`));
+        } catch (error: any) {
+          console.log(chalk.red(`✗ Failed to write ${filePath}: ${error.message}`));
+        }
+      }
+      console.log();
+    }
+
+    // Detect FILE_READ operations
+    const fileReadRegex = /FILE_READ:\s*(.+?)(?:\n|$)/g;
+    const fileReads = [...response.matchAll(fileReadRegex)];
+
+    if (fileReads.length > 0) {
+      hasActions = true;
+      console.log(chalk.cyan('\n📖 Reading files...\n'));
+
+      for (const match of fileReads) {
+        const filePath = match[1].trim();
+
+        try {
+          const fs = await import('fs/promises');
+          const content = await fs.readFile(filePath, 'utf-8');
+          console.log(chalk.gray(`Content of ${filePath}:`));
+          console.log(chalk.gray('─'.repeat(60)));
+          console.log(content);
+          console.log(chalk.gray('─'.repeat(60)));
+        } catch (error: any) {
+          console.log(chalk.red(`✗ Failed to read ${filePath}: ${error.message}`));
+        }
+      }
+      console.log();
+    }
+
+    // Detect code blocks for execution (excluding file writes)
+    const codeBlockRegex = /(?<!FILE_WRITE:\s*.+?\n)```(\w+)?\n([\s\S]*?)```/g;
     const matches = [...response.matchAll(codeBlockRegex)];
 
-    if (matches.length === 0) return;
+    if (matches.length > 0) {
+      hasActions = true;
+      console.log(chalk.cyan('\n⚡ Executing commands...\n'));
 
-    console.log(chalk.cyan('\n⚡ Detected executable code - running immediately...\n'));
+      for (const match of matches) {
+        const language = match[1] || 'bash';
+        const code = match[2].trim();
 
-    for (const match of matches) {
-      const language = match[1] || 'bash';
-      const code = match[2].trim();
+        if (!code) continue;
 
-      if (!code) continue;
-
-      console.log(chalk.gray(`Executing ${language}:`));
-      console.log(chalk.gray('─'.repeat(60)));
-
-      try {
-        const { exec } = await import('child_process');
-        const { promisify } = await import('util');
-        const execAsync = promisify(exec);
-
-        let command: string;
-        switch (language.toLowerCase()) {
-          case 'javascript':
-          case 'js':
-          case 'node':
-            command = `node -e ${JSON.stringify(code)}`;
-            break;
-          case 'python':
-          case 'py':
-            command = `python3 -c ${JSON.stringify(code)}`;
-            break;
-          case 'bash':
-          case 'sh':
-          case 'shell':
-            command = code;
-            break;
-          default:
-            console.log(chalk.yellow(`  Skipping unsupported language: ${language}\n`));
-            continue;
-        }
-
-        const { stdout, stderr } = await execAsync(command, { timeout: 30000 });
-
-        if (stdout) {
-          console.log(chalk.green('✓ Output:'));
-          console.log(stdout);
-        }
-        if (stderr) {
-          console.log(chalk.yellow('⚠️  Stderr:'));
-          console.log(stderr);
-        }
+        console.log(chalk.gray(`Executing ${language}:`));
         console.log(chalk.gray('─'.repeat(60)));
-      } catch (error: any) {
-        console.log(chalk.red('✗ Execution failed:'));
-        console.log(chalk.red(error.message));
-        console.log(chalk.gray('─'.repeat(60)));
+
+        try {
+          const { exec } = await import('child_process');
+          const { promisify } = await import('util');
+          const execAsync = promisify(exec);
+
+          let command: string;
+          switch (language.toLowerCase()) {
+            case 'javascript':
+            case 'js':
+            case 'node':
+              command = `node -e ${JSON.stringify(code)}`;
+              break;
+            case 'python':
+            case 'py':
+              command = `python3 -c ${JSON.stringify(code)}`;
+              break;
+            case 'bash':
+            case 'sh':
+            case 'shell':
+              command = code;
+              break;
+            default:
+              console.log(chalk.yellow(`  Skipping: ${language}\n`));
+              continue;
+          }
+
+          const { stdout, stderr } = await execAsync(command, {
+            timeout: 60000,
+            cwd: process.cwd()
+          });
+
+          if (stdout) {
+            console.log(chalk.green('✓ Output:'));
+            console.log(stdout);
+          }
+          if (stderr) {
+            console.log(chalk.yellow('⚠️  Stderr:'));
+            console.log(stderr);
+          }
+          console.log(chalk.gray('─'.repeat(60)));
+        } catch (error: any) {
+          console.log(chalk.red('✗ Execution failed:'));
+          console.log(chalk.red(error.stderr || error.message));
+          console.log(chalk.gray('─'.repeat(60)));
+        }
       }
+      console.log();
     }
-    console.log();
+
+    if (hasActions) {
+      console.log(chalk.green('✓ All actions completed\n'));
+    }
   }
 
   private async saveMessage(message: OllamaMessage) {
